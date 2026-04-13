@@ -42,7 +42,7 @@ class BaseDeDatos():
         fecha = ahora.strftime("%Y-%m-%d")
         hora = ahora.strftime("%H:%M:%S")
 
-        #print(f"\nAgregando a {nombre_tabla}: {descripcion} - {valor} el {fecha} a las {hora}\n")
+        print(f"\nAgregando a {nombre_tabla}: {descripcion} - {valor} el {fecha} a las {hora}\n")
 
         self.conectar()
         cursor = self.conexion.cursor()
