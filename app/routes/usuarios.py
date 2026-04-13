@@ -30,8 +30,7 @@ def obtener_todos():
     """Devuelve la lista completa de usuarios"""
     return jsonify({
         "success": True,
-        "data": USUARIOS,
-        "total": len(USUARIOS)
+        "data": "TODO BIEN"
     }), 200
 
 
