@@ -2,6 +2,7 @@ from datetime import datetime
 import sqlitecloud
 from dotenv import load_dotenv
 import os
+import pytz
 
 load_dotenv()
 
@@ -11,6 +12,7 @@ class BaseDeDatos():
         #self.nombre_bd = os.path.join(base_dir, "db", nombre_bd)
         self.conexion = None
         self.url = os.getenv("SQLITECLOUD_URL")
+        self.zonaHorariaColombia = pytz.timezone("America/Bogota")
         self.crear_tabla()
 
     def conectar(self):
@@ -36,8 +38,9 @@ class BaseDeDatos():
         self.desconectar()
 
     def agregar_dato(self, nombre_tabla, descripcion, valor):
-        fecha = datetime.now().strftime("%Y-%m-%d")
-        hora = datetime.now().strftime("%H:%M:%S")
+        ahora = datetime.now(self.zonaHorariaColombia)
+        fecha = ahora.strftime("%Y-%m-%d")
+        hora = ahora.strftime("%H:%M:%S")
 
         #print(f"\nAgregando a {nombre_tabla}: {descripcion} - {valor} el {fecha} a las {hora}\n")
 
