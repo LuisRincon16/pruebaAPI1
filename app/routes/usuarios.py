@@ -3,6 +3,7 @@ from app.BD.BDapi import BaseDeDatos
 
 # Creamos el blueprint
 usuarios_bp = Blueprint("usuarios", __name__)
+historial_bp = Blueprint("historial", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
@@ -22,6 +23,24 @@ def agregar_dato():
         "success": True,
         "mensaje": f"Registro de {body.get('nombre_tabla')} creado"
     }), 201
+
+
+#recibir historial de datos de las tres tablas
+@historial_bp.route("/", methods=["GET"])
+def obtener_historial():
+    """Devuelve el historial de datos de las tres tablas"""
+
+    datos = bd.obtener_historial(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
+    #print(datos)
+
+    return jsonify({
+        "success": True,
+        "data": datos
+    }), 200
+
+
+
+#-----------------------------------------------------------------------------------------
 
 
 # GET /api/usuarios/
