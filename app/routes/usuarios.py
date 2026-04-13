@@ -1,14 +1,27 @@
 from flask import Blueprint, jsonify, request
+from app.BD.BDapi import BaseDeDatos
 
 # Creamos el blueprint
 usuarios_bp = Blueprint("usuarios", __name__)
 
-# Base de datos simulada (en producción usarías PostgreSQL, MySQL, etc.)
-USUARIOS = [
-    {"id": 1, "nombre": "Ana García",   "email": "ana@email.com",   "edad": 28},
-    {"id": 2, "nombre": "Carlos López", "email": "carlos@email.com", "edad": 34},
-    {"id": 3, "nombre": "María Ruiz",   "email": "maria@email.com",  "edad": 22},
-]
+# Instanciamos la base de datos
+bd = BaseDeDatos()
+
+# POST /api/usuarios/
+@usuarios_bp.route("/", methods=["POST"])
+def agregar_dato():
+    """Recibe datos JSON y crea un registro"""
+    body = request.get_json()
+
+    if not body:
+        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
+
+    bd.agregar_dato(body.get("nombre_tabla"), body.get("descripcion"), body.get("valor"))
+
+    return jsonify({
+        "success": True,
+        "mensaje": f"Registro de {body.get('nombre_tabla')} creado"
+    }), 201
 
 
 # GET /api/usuarios/
@@ -38,27 +51,3 @@ def obtener_uno(usuario_id):
         "success": True,
         "data": usuario
     }), 200
-
-
-# POST /api/usuarios/
-@usuarios_bp.route("/", methods=["POST"])
-def crear_usuario():
-    """Recibe datos JSON y crea un nuevo usuario"""
-    body = request.get_json()
-
-    if not body:
-        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
-
-    nuevo = {
-        "id": len(USUARIOS) + 1,
-        "nombre": body.get("nombre"),
-        "email": body.get("email"),
-        "edad": body.get("edad")
-    }
-    USUARIOS.append(nuevo)
-
-    return jsonify({
-        "success": True,
-        "mensaje": "Usuario creado",
-        "data": nuevo
-    }), 201
