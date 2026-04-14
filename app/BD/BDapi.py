@@ -46,10 +46,17 @@ class BaseDeDatos():
         hora = ahora.strftime("%H:%M:%S")
 
         #print(f"\nAgregando a {nombre_tabla}: {descripcion} - {valor} el {fecha} a las {hora}\n")
+        tipo_ajustado = None
+        if nombre_tabla == "COMPRAS":
+            tipo_ajustado = "Com."
+        elif nombre_tabla == "GASTOS":
+            tipo_ajustado = "Gas."
+        elif nombre_tabla == "PRESTAMOS":
+            tipo_ajustado = "Pres."
 
         self.conectar()
         cursor = self.conexion.cursor()
-        cursor.execute(f"INSERT INTO {nombre_tabla} (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, nombre_tabla))
+        cursor.execute(f"INSERT INTO {nombre_tabla} (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, tipo_ajustado))
         self.conexion.commit()
         self.desconectar()
 
