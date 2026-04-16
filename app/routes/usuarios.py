@@ -134,7 +134,7 @@ def consultar_venta_por_id(id_venta):
     
     return jsonify({
         "success": True,
-        "data": dato
+        "data": dato      #puede ser un DATO si encuentra la venta o FALSE si no hay ventas por ese ID
     }), 200
 
 @registradora_bp.route("/venta_total", methods=["GET"])

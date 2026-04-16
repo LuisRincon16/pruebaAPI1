@@ -206,6 +206,8 @@ class BaseDeDatos():
                 cursor.execute("SELECT * FROM ventas WHERE id = ?", (id_venta,))
                 dato = cursor.fetchone()
                 self.desconectar()
+                if dato is None:
+                    return False
                 return dato
             except Exception as e:
                 #print(f"Error al consultar la venta por ID: {e}")
