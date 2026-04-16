@@ -226,6 +226,8 @@ class BaseDeDatos():
                                     WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
                 resultado = cursor.fetchone()
                 self.desconectar()
+                if resultado is None:
+                    return False
                 return resultado
             except Exception as e:
                 #print(f"Error al calcular el total vendido: {e}")
