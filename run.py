@@ -9,8 +9,10 @@ db = BaseDeDatos()
 # Registrar los "blueprints" (grupos de rutas)
 from app.routes.usuarios import usuarios_bp
 from app.routes.usuarios import historial_bp
+from app.routes.usuarios import registradora_bp
 app.register_blueprint(usuarios_bp, url_prefix="/api/usuarios")
 app.register_blueprint(historial_bp, url_prefix="/api/historial")
+app.register_blueprint(registradora_bp, url_prefix="/api/registradora")
 
 if __name__ == "__main__":
     app.run()

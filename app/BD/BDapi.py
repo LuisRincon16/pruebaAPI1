@@ -17,13 +17,28 @@ class BaseDeDatos():
         self.crear_vista_historial()
         self.crear_indice_fecha_hora()
 
+        #----------- Agregado para la registradora -----------
+        self.crear_tabla_Ventas()
+        self.crear_indices_ventas()
+
     def conectar(self):
-        self.conexion = sqlitecloud.connect(self.url)
+        try:
+            self.conexion = sqlitecloud.connect(self.url)
+            return True
+        except Exception as e:
+            #print(f"Error al conectar a la base de datos: {e}")
+            self.conexion = None
+            return False
 
     def desconectar(self):
         if self.conexion:
-            self.conexion.close()
-            self.conexion = None
+            try:
+                self.conexion.close()
+                self.conexion = None
+            except Exception as e:
+                #print(f"Error al desconectar de la base de datos: {e}")
+                self.conexion = None
+                pass
 
     def crear_tablas(self, nombre_tabla=["compras", "gastos", "prestamos"]):
         self.conectar()
@@ -54,11 +69,15 @@ class BaseDeDatos():
         elif nombre_tabla == "PRESTAMOS":
             tipo_ajustado = "Pres."
 
-        self.conectar()
-        cursor = self.conexion.cursor()
-        cursor.execute(f"INSERT INTO {nombre_tabla} (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, tipo_ajustado))
-        self.conexion.commit()
-        self.desconectar()
+        conexion = self.conectar()
+        if conexion:
+            cursor = self.conexion.cursor()
+            cursor.execute(f"INSERT INTO {nombre_tabla} (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, tipo_ajustado))
+            self.conexion.commit()
+            self.desconectar()
+            return True
+        else:
+            return False
 
     # --------- Vistas e índices para optimizar consultas del historial ---------
 
@@ -88,16 +107,161 @@ class BaseDeDatos():
     # --------- método para obtener datos del historial ---------
 
     def obtener_historial(self, fecha_inicio, fecha_fin):
+        result_conexion = self.conectar()
+        
+        if result_conexion:
+            self.conexion.row_factory = sqlitecloud.Row
+
+            cursor = self.conexion.cursor()
+            cursor.execute("""SELECT * 
+                                FROM historial_completo
+                                WHERE fecha BETWEEN ? AND ?
+                                ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+            datos = cursor.fetchall()
+            self.desconectar()
+            return [dict(row) for row in datos]
+        else:
+            return None
+
+    
+    # --------- Métodos para la registradora ---------
+    
+    def crear_tabla_Ventas(self, nombre_tabla="ventas"):
         self.conectar()
+        if self.conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {nombre_tabla} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        fecha VARCHAR NOT NULL,
+                        hora VARCHAR NOT NULL,
+                        monto INTEGER NOT NULL,
+                        estado VARCHAR NOT NULL
+                    )
+                """)
+                self.conexion.commit()
+                self.desconectar()
+            except Exception as e:
+                #print(f"Error al crear la tabla: {e}")
+                self.desconectar()
+    
+    def crear_indices_ventas(self):
+        self.conectar()
+        if self.conexion:
+            try:
+                cursor = self.conexion.cursor()
 
-        self.conexion.row_factory = sqlitecloud.Row
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_fecha_de_ventas
+                    ON ventas(fecha)
+                """)
 
-        cursor = self.conexion.cursor()
-        cursor.execute("""SELECT * 
-                            FROM historial_completo
-                            WHERE fecha BETWEEN ? AND ?
-                            ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
-        datos = cursor.fetchall()
-        self.desconectar()
+                self.conexion.commit()
+                self.desconectar()
+            except Exception as e:
+                #print(f"Error al crear los índices: {e}")
+                self.desconectar()
 
-        return [dict(row) for row in datos]
+    def agregar_venta(self, fecha, hora, monto, estado):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", (fecha, hora, monto, estado))
+                self.conexion.commit()
+                self.desconectar()
+                return True
+            except Exception as e:
+                #print(f"Error al agregar la venta: {e}")
+                self.desconectar()
+                return False
+        else:
+            return False
+        
+    def consultar_ventas(self, fecha_inicio, fecha_fin):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute("""SELECT * 
+                                    FROM ventas
+                                    WHERE fecha BETWEEN ? AND ?
+                                    ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+                datos = cursor.fetchall()
+                self.desconectar()
+                return datos
+            except Exception as e:
+                #print(f"Error al consultar las ventas: {e}")
+                self.desconectar()
+                return None
+        else:
+            return None
+        
+    def consultar_venta_por_id(self, id_venta):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute("SELECT * FROM ventas WHERE id = ?", (id_venta,))
+                dato = cursor.fetchone()
+                self.desconectar()
+                return dato
+            except Exception as e:
+                #print(f"Error al consultar la venta por ID: {e}")
+                self.desconectar()
+                return None
+        else:
+            return None
+        
+    def total_vendido(self, fecha_inicio, fecha_fin):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute("""SELECT SUM(monto)
+                                    FROM ventas
+                                    WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
+                resultado = cursor.fetchone()
+                self.desconectar()
+                return resultado
+            except Exception as e:
+                #print(f"Error al calcular el total vendido: {e}")
+                self.desconectar()
+                return None
+        else:
+            return None
+    
+    def eliminar_venta_por_id(self, id_venta):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                cursor.execute("DELETE FROM ventas WHERE id = ?", (id_venta,))
+                self.conexion.commit()
+                self.desconectar()
+                return True
+            except Exception as e:
+                #print(f"Error al eliminar la venta por ID: {e}")
+                self.desconectar()
+                return False
+        else:
+            return False
+    
+    def agregar_ventas_pendientes(self, ventas_pendientes):
+        result_conexion = self.conectar()
+        if result_conexion:
+            try:
+                cursor = self.conexion.cursor()
+                for venta in ventas_pendientes:
+                    fecha, hora, monto = venta
+                    cursor.execute("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", (fecha, hora, monto, "ACTUALIZADO"))
+                self.conexion.commit()
+                self.desconectar()
+                return True
+            except Exception as e:
+                #print(f"Error al agregar las ventas pendientes: {e}")
+                self.desconectar()
+                return False
+        else:
+            return False
