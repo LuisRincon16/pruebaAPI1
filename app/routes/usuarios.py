@@ -186,7 +186,7 @@ def eliminar_venta_por_id(id_venta):
         }), 500
     
 @registradora_bp.route("/ventas_pendientes", methods=["POST"])
-def agregar_ventas_pendientes(ventas_pendientes):
+def agregar_ventas_pendientes():
     token = request.headers.get("Authorization")
     autorizado = verificar(token)
     if not autorizado:
@@ -195,8 +195,12 @@ def agregar_ventas_pendientes(ventas_pendientes):
             "error": "No autorizado",
             "mensaje": "Token de autorización inválido"
         }), 401
+    
+    body = request.get_json()
+    if not body:
+        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
 
-    result_agregar_pendientes = bd.agregar_ventas_pendientes(ventas_pendientes)
+    result_agregar_pendientes = bd.agregar_ventas_pendientes(body)
 
     if result_agregar_pendientes:
         return jsonify({
