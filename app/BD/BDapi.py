@@ -16,8 +16,7 @@ class BaseDeDatos():
         self.crear_tablas()
         self.crear_vista_historial()
         self.crear_indice_fecha_hora()
-
-        #----------- Agregado para la registradora -----------
+        #------- para la registradora ---------
         self.crear_tabla_Ventas()
         self.crear_indices_ventas()
 
@@ -151,12 +150,10 @@ class BaseDeDatos():
         if self.conexion:
             try:
                 cursor = self.conexion.cursor()
-
                 cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_fecha_de_ventas
-                    ON ventas(fecha)
+                    CREATE INDEX IF NOT EXISTS idx_fecha_hora_ventas
+                    ON ventas(fecha, hora)
                 """)
-
                 self.conexion.commit()
                 self.desconectar()
             except Exception as e:
