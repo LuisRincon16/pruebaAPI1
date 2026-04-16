@@ -107,7 +107,6 @@ class BaseDeDatos():
 
     def obtener_historial(self, fecha_inicio, fecha_fin):
         result_conexion = self.conectar()
-        
         if result_conexion:
             self.conexion.row_factory = sqlitecloud.Row
 
