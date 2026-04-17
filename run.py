@@ -15,4 +15,4 @@ app.register_blueprint(historial_bp, url_prefix="/api/historial")
 app.register_blueprint(registradora_bp, url_prefix="/api/registradora")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run()
