@@ -40,19 +40,23 @@ class BaseDeDatos():
                 pass
 
     def crear_tablas(self, nombre_tabla=["compras", "gastos", "prestamos"]):
-        self.conectar()
-        cursor = self.conexion.cursor()
-        for table in nombre_tabla:
-            cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {table} (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    descripcion VARCHAR NOT NULL,
-                    valor INTEGER NOT NULL,
-                    fecha VARCHAR NOT NULL,
-                    hora VARCHAR NOT NULL,
-                    tipo VARCHAR NOT NULL )""")
-        self.conexion.commit()
-        self.desconectar()
+        try:
+            self.conectar()
+            cursor = self.conexion.cursor()
+            for table in nombre_tabla:
+                cursor.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {table} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        descripcion VARCHAR NOT NULL,
+                        valor INTEGER NOT NULL,
+                        fecha VARCHAR NOT NULL,
+                        hora VARCHAR NOT NULL,
+                        tipo VARCHAR NOT NULL )""")
+            self.conexion.commit()
+            self.desconectar()
+        except Exception as e:
+            #print(f"Error al crear las tablas: {e}")
+            self.desconectar()
 
     def agregar_dato(self, nombre_tabla, descripcion, valor):
         ahora = datetime.now(self.zonaHorariaColombia)
@@ -81,27 +85,35 @@ class BaseDeDatos():
     # --------- Vistas e índices para optimizar consultas del historial ---------
 
     def crear_vista_historial(self):
-        self.conectar()
-        cursor = self.conexion.cursor()
-        cursor.execute("""
-            CREATE VIEW IF NOT EXISTS historial_completo AS
-            SELECT * FROM compras
-            UNION ALL
-            SELECT * FROM gastos
-            UNION ALL
-            SELECT * FROM prestamos
-        """)
-        self.conexion.commit()
-        self.desconectar()
+        try:
+            self.conectar()
+            cursor = self.conexion.cursor()
+            cursor.execute("""
+                CREATE VIEW IF NOT EXISTS historial_completo AS
+                SELECT * FROM compras
+                UNION ALL
+                SELECT * FROM gastos
+                UNION ALL
+                SELECT * FROM prestamos
+            """)
+            self.conexion.commit()
+            self.desconectar()
+        except Exception as e:
+            #print(f"Error al crear la vista del historial: {e}")
+            self.desconectar()
 
     def crear_indice_fecha_hora(self):
-        self.conectar()
-        cursor = self.conexion.cursor()
-        for table in ["compras", "gastos", "prestamos"]:
-            cursor.execute(f"""CREATE INDEX IF NOT EXISTS
-                                idx_{table}_fecha_hora ON {table}(fecha, hora)""")
-        self.conexion.commit()
-        self.desconectar()
+        try:
+            self.conectar()
+            cursor = self.conexion.cursor()
+            for table in ["compras", "gastos", "prestamos"]:
+                cursor.execute(f"""CREATE INDEX IF NOT EXISTS
+                                    idx_{table}_fecha_hora ON {table}(fecha, hora)""")
+            self.conexion.commit()
+            self.desconectar()
+        except Exception as e:
+            #print(f"Error al crear los índices de fecha y hora: {e}")
+            self.desconectar()
 
     # --------- método para obtener datos del historial ---------
 

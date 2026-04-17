@@ -7,40 +7,60 @@ from flask import Blueprint, jsonify, request
 from app.BD.BDapi import BaseDeDatos
 
 # Creamos el blueprint
-usuarios_bp = Blueprint("usuarios", __name__)
+registrar_bp = Blueprint("registrar", __name__)
 historial_bp = Blueprint("historial", __name__)
 registradora_bp = Blueprint("registradora", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
 
-# POST /api/usuarios/
-@usuarios_bp.route("/", methods=["POST"])
+# POST /api/registrar/
+@registrar_bp.route("/", methods=["POST"])
 def agregar_dato():
-    """Recibe datos JSON y crea un registro"""
+    autorizado = verificar(request.headers.get("Authorization"))
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "titulo_mensaje": "Token de autorización inválido",
+            "cuerpo_mensaje": "SUERTE .!."
+        }), 401
+    
+    #si está autorizado, recibe el JSON con los datos para agregar
     body = request.get_json()
-
     if not body:
-        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
-
-    result_agregar_dato = bd.agregar_dato(body.get("nombre_tabla"), body.get("descripcion"), body.get("valor"))
+        return jsonify({"success": False,
+                        "titulo_mensaje": "No se enviaron datos",
+                        "cuerpo_mensaje": "Enviar datos por favor"
+                        }), 400
+    
+    nombre_tabla = body.get("nombre_tabla")
+    descripcion = body.get("descripcion")
+    valor = body.get("valor")
+    result_agregar_dato = bd.agregar_dato(nombre_tabla, descripcion, valor)
 
     if result_agregar_dato:
         return jsonify({
         "success": True,
-        "mensaje": f"Registro de {body.get('nombre_tabla')} creado"
+        "titulo_mensaje": f"REGISTRADO EN {nombre_tabla}",
+        "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n* VALOR: {valor}"
     }), 201
     else:
         return jsonify({
             "success": False,
-            "mensaje": "No se pudo agregar el dato a la base de datos por algun fallo de conexion."
+            "titulo_mensaje": "ERROR DE CONEXIÓN :(",
+            "cuerpo_mensaje": "No se pudo agregar el registro a la BD por algun fallo de conexion."
         }), 500
 
 
 #recibir historial de datos de las tres tablas
 @historial_bp.route("/", methods=["GET"])
 def obtener_historial():
-    """Devuelve el historial de datos de las tres tablas"""
+    autorizado = verificar(request.headers.get("Authorization"))
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 401
 
     datos = bd.obtener_historial(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
     #print(datos)

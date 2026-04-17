@@ -7,12 +7,12 @@ CORS(app)  # Permite peticiones desde Android
 db = BaseDeDatos()
 
 # Registrar los "blueprints" (grupos de rutas)
-from app.routes.usuarios import usuarios_bp
-from app.routes.usuarios import historial_bp
-from app.routes.usuarios import registradora_bp
-app.register_blueprint(usuarios_bp, url_prefix="/api/usuarios")
+from app.routes.endpoints import registrar_bp
+from app.routes.endpoints import historial_bp
+from app.routes.endpoints import registradora_bp
+app.register_blueprint(registrar_bp, url_prefix="/api/registrar")
 app.register_blueprint(historial_bp, url_prefix="/api/historial")
 app.register_blueprint(registradora_bp, url_prefix="/api/registradora")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=True)
