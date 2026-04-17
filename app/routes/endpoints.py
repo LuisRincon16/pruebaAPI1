@@ -62,7 +62,9 @@ def obtener_historial():
             "data": []
         }), 401
 
-    datos = bd.obtener_historial(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
+    datos = bd.obtener_historial(request.args.get("fecha_inicio"),
+                                 request.args.get("fecha_final"),
+                                 request.args.get("descripcion"))
     #print(datos)
 
     if datos is None:

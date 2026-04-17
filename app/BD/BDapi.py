@@ -117,16 +117,23 @@ class BaseDeDatos():
 
     # --------- método para obtener datos del historial ---------
 
-    def obtener_historial(self, fecha_inicio, fecha_fin):
+    def obtener_historial(self, fecha_inicio, fecha_fin, descripcion):
         result_conexion = self.conectar()
         if result_conexion:
             self.conexion.row_factory = sqlitecloud.Row
-
             cursor = self.conexion.cursor()
-            cursor.execute("""SELECT * 
-                                FROM historial_completo
-                                WHERE fecha BETWEEN ? AND ?
-                                ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+            if descripcion is None:
+                cursor.execute("""SELECT * 
+                                    FROM historial_completo
+                                    WHERE fecha BETWEEN ? AND ?
+                                    ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+            else:
+                cursor.execute("""SELECT * 
+                                    FROM historial_completo
+                                    WHERE fecha BETWEEN ? AND ?
+                                    AND descripcion LIKE ?
+                                    ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin, f"%{descripcion}%"))
+                
             datos = cursor.fetchall()
             self.desconectar()
             return [dict(row) for row in datos]
