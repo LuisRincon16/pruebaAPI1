@@ -39,10 +39,11 @@ def agregar_dato():
     result_agregar_dato = bd.agregar_dato(nombre_tabla, descripcion, valor)
 
     if result_agregar_dato:
+        valor_formateado = formatear_numero(valor)
         return jsonify({
         "success": True,
         "titulo_mensaje": f"REGISTRADO EN {nombre_tabla}",
-        "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n* VALOR: {valor}"
+        "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n\n* VALOR: {valor_formateado}"
     }), 201
     else:
         return jsonify({
@@ -263,3 +264,9 @@ def verificar(token):
     if token != f"Bearer {os.getenv('TOKEN_API')}":
         return False
     return True
+
+def formatear_numero(valor):
+    if isinstance(valor, int):
+        return f"{valor:,}".replace(",", ".")
+    else:
+        return valor
