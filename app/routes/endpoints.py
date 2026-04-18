@@ -79,6 +79,29 @@ def obtener_historial():
     }), 200
 
 
+@historial_bp.route("/opciones", methods=["GET"])
+def consultar_opciones():
+    autorizado = verificar(request.headers.get("Authorization"))
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 401
+
+    opciones = bd.consultar_opciones(request.args.get("nombre_tabla"))
+
+    if opciones is None:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 500
+    
+    return jsonify({
+        "success": True,
+        "data": opciones
+    }), 200
+
+
 
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
 

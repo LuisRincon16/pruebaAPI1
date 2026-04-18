@@ -139,6 +139,19 @@ class BaseDeDatos():
             return [dict(row) for row in datos]
         else:
             return None
+        
+
+    def consultar_opciones(self, nombre_tabla):
+        result_conexion = self.conectar()
+        if result_conexion:
+            cursor = self.conexion.cursor()
+            cursor.execute(f"""SELECT DISTINCT descripcion 
+                                FROM {nombre_tabla}""")
+            datos = cursor.fetchall()
+            self.desconectar()
+            return [row[0] for row in datos]
+        else:
+            return None
 
     
     # --------- Métodos para la registradora ---------
