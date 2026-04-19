@@ -17,4 +17,4 @@ app.register_blueprint(registradora_bp, url_prefix="/api/registradora")
 app.register_blueprint(resumen_bp, url_prefix="/api/resumenGeneral")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run()
