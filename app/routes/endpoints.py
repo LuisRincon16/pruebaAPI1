@@ -10,6 +10,7 @@ from app.BD.BDapi import BaseDeDatos
 registrar_bp = Blueprint("registrar", __name__)
 historial_bp = Blueprint("historial", __name__)
 registradora_bp = Blueprint("registradora", __name__)
+resumen_bp = Blueprint("resumen", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
@@ -66,7 +67,6 @@ def obtener_historial():
     datos = bd.obtener_historial(request.args.get("fecha_inicio"),
                                  request.args.get("fecha_final"),
                                  request.args.get("descripcion"))
-    #print(datos)
 
     if datos is None:
         return jsonify({
@@ -102,7 +102,28 @@ def consultar_opciones():
         "data": opciones
     }), 200
 
+@resumen_bp.route("/", methods=["GET"])
+def obtener_resumen_general():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 401
 
+    result_resumen = bd.obtener_resumen_general(request.args.get("fecha_inicio"), request.args.get("fecha_final"), request.args.get("nombre_tabla"))
+    
+    if result_resumen is None:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_resumen
+    }), 200
 
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
 

@@ -160,6 +160,26 @@ class BaseDeDatos():
         else:
             return None
 
+
+    def obtener_resumen_general(self, fecha_inicio, fecha_fin, nombre_tabla):
+        cone = self.conectar()
+        if cone:
+            try:
+                self.conexion.row_factory = sqlitecloud.Row
+                cursor = self.conexion.cursor()
+                cursor.execute(f"""SELECT *
+                                    FROM {nombre_tabla}
+                                    WHERE fecha BETWEEN ? AND ?
+                                    ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+                datos = cursor.fetchall()
+                self.desconectar()
+                return [dict(row) for row in datos]
+            except Exception as e:
+                self.desconectar()
+                return None
+        else:
+            return None
+
     
     # --------- Métodos para la registradora ---------
     
