@@ -113,7 +113,7 @@ def obtener_resumen_general():
         }), 401
 
     result_resumen = bd.obtener_resumen_general(request.args.get("fecha_inicio"), request.args.get("fecha_final"), request.args.get("nombre_tabla"))
-    
+    #print(f"resumen en el endpoint {result_resumen}\n")
     if result_resumen is None:
         return jsonify({
             "success": False,
@@ -123,6 +123,28 @@ def obtener_resumen_general():
     return jsonify({
         "success": True,
         "data": result_resumen
+    }), 200
+
+@resumen_bp.route("/totales", methods=["GET"])
+def obtener_totales_por_fecha():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+
+    result_total = bd.obtener_totales_por_fecha(request.args.get("fecha_inicio"), request.args.get("fecha_final"), request.args.get("nombre_tabla"))
+    if result_total is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_total
     }), 200
 
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
