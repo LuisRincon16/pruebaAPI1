@@ -147,6 +147,33 @@ def obtener_totales_por_fecha():
         "data": result_total
     }), 200
 
+@resumen_bp.route("/acumulado", methods=["GET"])
+def obtener_acumulado():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+    
+    fecha_final_rec = request.args.get("fecha_final")
+    fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
+    fecha_final_formateada = fecha_final_rec[:7] + "-32" 
+    
+    result_acumulado = bd.obtener_acumulado(fecha_inicio_formateada, fecha_final_formateada, request.args.get("nombre_tabla"))
+
+    if result_acumulado is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_acumulado
+    }), 200
+
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
 
 @registradora_bp.route("/ventas", methods=["POST"])

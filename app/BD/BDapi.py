@@ -312,6 +312,26 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
+    def obtener_acumulado(self, fecha_inicio_formateada, fecha_final_formateada, nombre_tabla):
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute(f"""SELECT SUM(total) AS total
+                                FROM total_{nombre_tabla}
+                                WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
+            datos = cursor.fetchone()
+            if datos[0] is None:
+                return 0
+            return datos[0]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
     # --------- Métodos para la registradora ---------
     
     def crear_tabla_Ventas(self, nombre_tabla="ventas"):
