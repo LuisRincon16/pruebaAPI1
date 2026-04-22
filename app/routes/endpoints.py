@@ -174,6 +174,107 @@ def obtener_acumulado():
         "data": result_acumulado
     }), 200
 
+@resumen_bp.route("/totales/ventas", methods=["GET"])
+def obtener_total_ventas():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+
+    result_total_ventas = bd.obtener_total_ventas(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
+
+    if result_total_ventas is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_total_ventas
+    }), 200
+
+@resumen_bp.route("/acumulado/ventas", methods=["GET"])
+def obtener_acumulado_ventas():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+
+    fecha_final_rec = request.args.get("fecha_final")
+    fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
+    fecha_final_formateada = fecha_final_rec[:7] + "-32"
+
+    result_acumulado_ventas = bd.obtener_acumulado_ventas(fecha_inicio_formateada, fecha_final_formateada)
+
+    if result_acumulado_ventas is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_acumulado_ventas
+    }), 200
+
+@resumen_bp.route("/totales/gastado", methods=["GET"])
+def obtener_total_gastado():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+
+    result_total_gastado = bd.obtener_total_gastado(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
+
+    if result_total_gastado is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_total_gastado
+    }), 200
+
+@resumen_bp.route("/acumulado/gastado", methods=["GET"])
+def obtener_acumulado_total_gastado():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 401
+
+    fecha_final_rec = request.args.get("fecha_final")
+    fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
+    fecha_final_formateada = fecha_final_rec[:7] + "-32"
+
+    result_acumulado_total_gastado = bd.obtener_acumulado_total_gastado(fecha_inicio_formateada, fecha_final_formateada)
+
+    if result_acumulado_total_gastado is None:
+        return jsonify({
+            "success": False,
+            "data": 0
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": result_acumulado_total_gastado
+    }), 200
+
+
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
 
 @registradora_bp.route("/ventas", methods=["POST"])

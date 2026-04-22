@@ -82,6 +82,7 @@ class BaseDeDatos():
     # --------- Vistas e índices para optimizar consultas del historial ---------
 
     def crear_vista_historial(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -104,6 +105,7 @@ class BaseDeDatos():
                     pass
     
     def crear_vista_total_compras(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -124,6 +126,7 @@ class BaseDeDatos():
                     pass
 
     def crear_vista_total_gastos(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -144,6 +147,7 @@ class BaseDeDatos():
                     pass
 
     def crear_vista_total_prestamos(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -164,6 +168,7 @@ class BaseDeDatos():
                     pass
 
     def crear_vista_total_ventas(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -184,18 +189,19 @@ class BaseDeDatos():
                     pass
 
     def crear_vista_total_gastado(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
             cursor.execute("""
                 CREATE VIEW IF NOT EXISTS total_gastado AS
-                SELECT fecha, SUM(total) AS total
+                SELECT fecha, SUM(valor) AS total
                 FROM(
-                    SELECT * FROM total_compras
+                    SELECT fecha, valor FROM compras
                     UNION ALL
-                    SELECT * FROM total_gastos
+                    SELECT fecha, valor FROM gastos
                     UNION ALL
-                    SELECT * FROM total_prestamos)
+                    SELECT fecha, valor FROM prestamos)
                 GROUP BY fecha
             """)
             conexion.commit()
@@ -209,6 +215,7 @@ class BaseDeDatos():
                     pass
 
     def crear_indice_fecha_hora(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -228,6 +235,7 @@ class BaseDeDatos():
     # --------- método para obtener datos del historial ---------
 
     def obtener_historial(self, fecha_inicio, fecha_fin, descripcion):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             conexion.row_factory = sqlitecloud.Row
@@ -255,6 +263,7 @@ class BaseDeDatos():
                     pass
         
     def consultar_opciones(self, nombre_tabla):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -272,6 +281,7 @@ class BaseDeDatos():
                     pass
 
     def obtener_resumen_general(self, fecha_inicio, fecha_fin, nombre_tabla):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             conexion.row_factory = sqlitecloud.Row
@@ -293,11 +303,12 @@ class BaseDeDatos():
                     pass
         
     def obtener_totales_por_fecha(self, fecha_inicio, fecha_fin, nombre_tabla):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute(f"""SELECT SUM(total) AS total
-                                FROM total_{nombre_tabla}
+            cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM {nombre_tabla}
                                 WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
             datos = cursor.fetchone()
             if datos[0] is None:
@@ -313,11 +324,12 @@ class BaseDeDatos():
                     pass
 
     def obtener_acumulado(self, fecha_inicio_formateada, fecha_final_formateada, nombre_tabla):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute(f"""SELECT SUM(total) AS total
-                                FROM total_{nombre_tabla}
+            cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM {nombre_tabla}
                                 WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
             datos = cursor.fetchone()
             if datos[0] is None:
@@ -332,9 +344,94 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
+    def obtener_total_ventas(self, fecha_inicio, fecha_fin):     #Devuelve el total de VENTAS
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""SELECT SUM(monto) AS total
+                                FROM ventas
+                                WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
+            datos = cursor.fetchone()
+            if datos[0] is None:
+                return 0
+            return datos[0]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def obtener_acumulado_ventas(self, fecha_inicio_formateada, fecha_final_formateada):     #Devuelve el acumulado de ventas en el mes proporcionado
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""SELECT SUM(monto) AS total
+                                FROM ventas
+                                WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
+            datos = cursor.fetchone()
+            if datos[0] is None:
+                return 0
+            return datos[0]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def obtener_total_gastado(self, fecha_inicio, fecha_fin):     #Devuelve el total de EFECTIVO
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""SELECT SUM(total)
+                            FROM total_gastado
+                            WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
+            resultado = cursor.fetchone()
+            if resultado[0] is None:
+                return 0
+            return resultado[0]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def obtener_acumulado_total_gastado(self, fecha_inicio_formateada, fecha_final_formateada):     #Devuelve el acumulado de EFECTIVO en el mes proporcionado
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""SELECT SUM(total)
+                           FROM total_gastado
+                           WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
+            resultado = cursor.fetchone()
+            if resultado[0] is None:
+                return 0
+            return resultado[0]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
     # --------- Métodos para la registradora ---------
     
     def crear_tabla_Ventas(self, nombre_tabla="ventas"):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -358,6 +455,7 @@ class BaseDeDatos():
                     pass
     
     def crear_indices_ventas(self):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -376,6 +474,7 @@ class BaseDeDatos():
                     pass
 
     def agregar_venta(self, fecha, hora, monto, estado):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -392,6 +491,7 @@ class BaseDeDatos():
                     pass
         
     def consultar_ventas(self, fecha_inicio, fecha_fin):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -411,6 +511,7 @@ class BaseDeDatos():
                     pass
         
     def consultar_venta_por_id(self, id_venta):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -429,6 +530,7 @@ class BaseDeDatos():
                     pass
         
     def total_vendido(self, fecha_inicio, fecha_fin):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -449,6 +551,7 @@ class BaseDeDatos():
                     pass
     
     def eliminar_venta_por_id(self, id_venta):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
@@ -465,6 +568,7 @@ class BaseDeDatos():
                     pass
     
     def agregar_ventas_pendientes(self, ventas_pendientes):
+        conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
