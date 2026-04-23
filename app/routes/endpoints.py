@@ -439,28 +439,28 @@ def recibir_transaccion():
     if not autorizado:
         return jsonify({
             "success": False,
+            "titulo": "No autorizado",
             "mensaje": "Token de autorización inválido"
         }), 401
 
     body = request.get_json()
     if not body:
-        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
-    
-    monto = body.get("monto")
-    fecha = "hoy"
-    hora = "ahora mismo"
+        return jsonify({"success": False, "titulo": "No data received","mensaje": "No se enviaron datos para guardar la transaccion"}), 400
 
-    result_recibir_transaccion = bd.recibir_transaccion(monto, fecha, hora)
+    monto = body.get("monto")
+    result_recibir_transaccion = bd.recibir_transaccion(monto)
 
     if result_recibir_transaccion:
         return jsonify({
         "success": True,
-        "mensaje": f"Transacciones recibidas con éxito."
+        "titulo": "TRANSACCION GUARDADA CON ÉXITO",
+        "mensaje": f"Se guardó la transaccion con un monto de {monto} en la BD"
     }), 201
     else:
         return jsonify({
             "success": False,
-            "mensaje": f"No se pudieron recibir las transacciones a la base de datos por algun fallo de conexion. Error: {result_recibir_transaccion}"
+            "titulo": "ERROR AL GUARDAR LA TRANSACCION",
+            "mensaje": f"No se pudo guardar la transaccion por un monto de {monto} en la BD"
         }), 500
 
 

@@ -598,7 +598,8 @@ class BaseDeDatos():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     monto INTEGER NOT NULL,
                     fecha VARCHAR NOT NULL,
-                    hora VARCHAR NOT NULL
+                    hora VARCHAR NOT NULL, 
+                    banco VARCHAR NOT NULL
                 )
             """)
             conexion.commit()
@@ -611,12 +612,14 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
-    def recibir_transaccion(self, monto, fecha, hora):
+    def recibir_transaccion(self, monto):
+        fecha = datetime.now().strftime("%Y-%m-%d")
+        hora = datetime.now().strftime("%H:%M:%S")
         conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute("INSERT INTO transacciones (monto, fecha, hora) VALUES (?, ?, ?)", (monto, fecha, hora))
+            cursor.execute("INSERT INTO transacciones (monto, fecha, hora, banco) VALUES (?, ?, ?, ?)", (monto, fecha, hora, "NEQUI"))
             conexion.commit()
             return True
         except Exception as e:
