@@ -613,8 +613,9 @@ class BaseDeDatos():
                     pass
 
     def recibir_transaccion(self, monto):
-        fecha = datetime.now().strftime("%Y-%m-%d")
-        hora = datetime.now().strftime("%H:%M:%S")
+        ahora = datetime.now(self.zonaHorariaColombia)
+        fecha = ahora.strftime("%Y-%m-%d")
+        hora = ahora.strftime("%H:%M:%S")
         conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
