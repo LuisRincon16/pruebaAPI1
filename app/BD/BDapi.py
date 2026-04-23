@@ -25,6 +25,8 @@ class BaseDeDatos():
         self.crear_vista_total_gastado()
         self.crear_vista_total_ventas()
 
+        self.crear_tabla_transacciones()
+
     def crear_tablas(self, nombre_tabla=["compras", "gastos", "prestamos"]):
         conexion = None
         try:
@@ -575,6 +577,46 @@ class BaseDeDatos():
             for venta in ventas_pendientes:
                 fecha, hora, monto = venta
                 cursor.execute("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", (fecha, hora, monto, "ACTUALIZADO"))
+            conexion.commit()
+            return True
+        except Exception as e:
+            return False
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+    
+    def crear_tabla_transacciones(self):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS transacciones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    monto INTEGER NOT NULL,
+                    fecha VARCHAR NOT NULL,
+                    hora VARCHAR NOT NULL
+                )
+            """)
+            conexion.commit()
+        except Exception as e:
+            pass
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def recibir_transaccion(self, monto, fecha, hora):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("INSERT INTO transacciones (monto, fecha, hora) VALUES (?, ?, ?)", (monto, fecha, hora))
             conexion.commit()
             return True
         except Exception as e:

@@ -11,6 +11,7 @@ registrar_bp = Blueprint("registrar", __name__)
 historial_bp = Blueprint("historial", __name__)
 registradora_bp = Blueprint("registradora", __name__)
 resumen_bp = Blueprint("resumen", __name__)
+transacciones_bp = Blueprint("transacciones", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
@@ -429,6 +430,40 @@ def agregar_ventas_pendientes():
             "success": False,
             "mensaje": f"No se pudieron agregar las ventas pendientes a la base de datos por algun fallo de conexion. Error: {result_agregar_pendientes}"
         }), 500
+    
+
+@transacciones_bp.route("/", methods=["POST"])
+def recibir_transaccion():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "mensaje": "Token de autorización inválido"
+        }), 401
+
+    body = request.get_json()
+    if not body:
+        return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
+    
+    monto = body.get("monto")
+    fecha = "hoy"
+    hora = "ahora mismo"
+
+    result_recibir_transaccion = bd.recibir_transaccion(monto, fecha, hora)
+
+    if result_recibir_transaccion:
+        return jsonify({
+        "success": True,
+        "mensaje": f"Transacciones recibidas con éxito."
+    }), 201
+    else:
+        return jsonify({
+            "success": False,
+            "mensaje": f"No se pudieron recibir las transacciones a la base de datos por algun fallo de conexion. Error: {result_recibir_transaccion}"
+        }), 500
+
+
 
 # =================Función para verificar el token de autorización =============================
 def verificar(token):
