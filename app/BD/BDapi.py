@@ -596,6 +596,7 @@ class BaseDeDatos():
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS transacciones (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion VARCHAR NOT NULL,
                     monto INTEGER NOT NULL,
                     fecha VARCHAR NOT NULL,
                     hora VARCHAR NOT NULL, 
@@ -612,7 +613,7 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
-    def recibir_transaccion(self, monto):
+    def recibir_transaccion(self, descripcion, monto, banco):
         ahora = datetime.now(self.zonaHorariaColombia)
         fecha = ahora.strftime("%Y-%m-%d")
         hora = ahora.strftime("%H:%M:%S")
@@ -620,7 +621,7 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute("INSERT INTO transacciones (monto, fecha, hora, banco) VALUES (?, ?, ?, ?)", (monto, fecha, hora, "NEQUI"))
+            cursor.execute("INSERT INTO transacciones (descripcion, monto, fecha, hora, banco) VALUES (?, ?, ?, ?, ?)", (descripcion, monto, fecha, hora, banco))
             conexion.commit()
             return True
         except Exception as e:

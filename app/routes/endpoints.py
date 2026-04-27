@@ -439,28 +439,30 @@ def recibir_transaccion():
     if not autorizado:
         return jsonify({
             "success": False,
-            "titulo": "No autorizado",
-            "mensaje": "Token de autorización inválido"
+            "titulo_mensaje": "No autorizado",
+            "cuerpo_mensaje": "Token de autorización inválido"
         }), 401
 
     body = request.get_json()
     if not body:
-        return jsonify({"success": False, "titulo": "No data received","mensaje": "No se enviaron datos para guardar la transaccion"}), 400
+        return jsonify({"success": False, "titulo_mensaje": "No data received", "cuerpo_mensaje": "No se enviaron datos para guardar la transaccion"}), 400
 
+    descripcion = body.get("descripcion")
     monto = body.get("monto")
-    result_recibir_transaccion = bd.recibir_transaccion(monto)
+    banco = body.get("banco")
+    result_recibir_transaccion = bd.recibir_transaccion(descripcion, monto, banco)
 
     if result_recibir_transaccion:
         return jsonify({
         "success": True,
-        "titulo": "TRANSACCION GUARDADA CON ÉXITO",
-        "mensaje": f"Se guardó la transaccion con un monto de {monto} en la BD"
+        "titulo_mensaje": f"{descripcion} GUARDADO CON ÉXITO",
+        "cuerpo_mensaje": f"Se guardó el {descripcion} de ${monto} proveniente de {banco} en la BD"
     }), 201
     else:
         return jsonify({
             "success": False,
-            "titulo": "ERROR AL GUARDAR LA TRANSACCION",
-            "mensaje": f"No se pudo guardar la transaccion por un monto de {monto} en la BD"
+            "titulo_mensaje": f"ERROR AL GUARDAR EL {descripcion}",
+            "cuerpo_mensaje": f"NO se pudo guardar el {descripcion} de ${monto} proveniente de {banco} en la BD"
         }), 500
 
 
