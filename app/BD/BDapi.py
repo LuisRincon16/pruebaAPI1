@@ -288,10 +288,16 @@ class BaseDeDatos():
             conexion = sqlitecloud.connect(self.url)
             conexion.row_factory = sqlitecloud.Row
             cursor = conexion.cursor()
-            cursor.execute(f"""SELECT *
-                                FROM {nombre_tabla}
-                                WHERE fecha BETWEEN ? AND ?
-                                ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
+            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+                cursor.execute(f"""SELECT *
+                                FROM transacciones
+                                WHERE fecha BETWEEN ? AND ? AND tipo = ?
+                                ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin, nombre_tabla))
+            else:
+                cursor.execute(f"""SELECT *
+                                    FROM {nombre_tabla}
+                                    WHERE fecha BETWEEN ? AND ?
+                                    ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin))
             datos = cursor.fetchall()
             #print(f"\nresumen antes del endpoint: {datos}")
             return [dict(row) for row in datos]
@@ -309,9 +315,14 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute(f"""SELECT SUM(valor) AS total
-                                FROM {nombre_tabla}
-                                WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
+            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM transacciones
+                                WHERE fecha BETWEEN ? AND ? AND tipo = ? """, (fecha_inicio, fecha_fin, nombre_tabla))
+            else:
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                    FROM {nombre_tabla}
+                                    WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
             datos = cursor.fetchone()
             if datos[0] is None:
                 return 0
@@ -330,9 +341,14 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute(f"""SELECT SUM(valor) AS total
-                                FROM {nombre_tabla}
-                                WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
+            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM transacciones
+                                WHERE fecha >= ? AND fecha < ? AND tipo = ? """, (fecha_inicio_formateada, fecha_final_formateada, nombre_tabla))
+            else:
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                    FROM {nombre_tabla}
+                                    WHERE fecha >= ? AND fecha < ?""", (fecha_inicio_formateada, fecha_final_formateada))
             datos = cursor.fetchone()
             if datos[0] is None:
                 return 0
@@ -597,10 +613,10 @@ class BaseDeDatos():
                 CREATE TABLE IF NOT EXISTS transacciones (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     descripcion VARCHAR NOT NULL,
-                    monto INTEGER NOT NULL,
+                    valor INTEGER NOT NULL,
                     fecha VARCHAR NOT NULL,
                     hora VARCHAR NOT NULL, 
-                    banco VARCHAR NOT NULL
+                    tipo VARCHAR NOT NULL
                 )
             """)
             conexion.commit()
@@ -613,7 +629,7 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
-    def recibir_transaccion(self, descripcion, monto, banco):
+    def recibir_transaccion(self, descripcion, valor, tipo):
         ahora = datetime.now(self.zonaHorariaColombia)
         fecha = ahora.strftime("%Y-%m-%d")
         hora = ahora.strftime("%H:%M:%S")
@@ -621,7 +637,7 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute("INSERT INTO transacciones (descripcion, monto, fecha, hora, banco) VALUES (?, ?, ?, ?, ?)", (descripcion, monto, fecha, hora, banco))
+            cursor.execute("INSERT INTO transacciones (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, tipo))
             conexion.commit()
             return True
         except Exception as e:
