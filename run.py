@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from app.BD.BDapi import BaseDeDatos
+import os
 
 app = Flask(__name__)
 CORS(app)  # Permite peticiones desde Android
@@ -21,4 +22,5 @@ app.register_blueprint(transacciones_bp, url_prefix="/api/transacciones")
 app.register_blueprint(empleados_bp, url_prefix="/api/empleados")
 
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
