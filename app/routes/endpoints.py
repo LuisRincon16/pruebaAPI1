@@ -503,6 +503,29 @@ def registrar_prestamo_emp():
         }), 500
 
 
+@empleados_bp.route("/historialDiario", methods=["GET"])
+def obtener_historial_diario_emp():
+    autorizado = verificar(request.headers.get("Authorization"))
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 401
+
+    datos = bd.obtener_historial_diario_emp(request.args.get("dia_a_consultar"))
+
+    if datos is None:
+        return jsonify({
+            "success": False,
+            "data": []
+        }), 500
+    
+    return jsonify({
+        "success": True,
+        "data": datos
+    }), 200
+
+
 # =================Función para verificar el token de autorización =============================
 def verificar(token):
     if token != f"Bearer {os.getenv('TOKEN_API')}":

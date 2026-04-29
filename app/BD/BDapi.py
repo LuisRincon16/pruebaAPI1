@@ -694,3 +694,26 @@ class BaseDeDatos():
                     conexion.close()
                 except Exception as e:
                     pass
+
+    def obtener_historial_diario_emp(self, dia_a_consultar):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            conexion.row_factory = sqlitecloud.Row
+            cursor = conexion.cursor()
+            cursor.execute("""SELECT *
+                                FROM prestamos_emp
+                                WHERE fecha = ? 
+                                ORDER BY fecha DESC, hora DESC""", (dia_a_consultar))
+            datos = cursor.fetchall()
+            return [dict(row) for row in datos]
+        except Exception as e:
+            return None
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+
