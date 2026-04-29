@@ -12,6 +12,7 @@ historial_bp = Blueprint("historial", __name__)
 registradora_bp = Blueprint("registradora", __name__)
 resumen_bp = Blueprint("resumen", __name__)
 transacciones_bp = Blueprint("transacciones", __name__)
+empleados_bp = Blueprint("empleados", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
@@ -466,6 +467,40 @@ def recibir_transaccion():
             "cuerpo_mensaje": f"NO se pudo guardar el {descripcion} de ${monto_formateado} proveniente de {tipo} en la BD"
         }), 500
 
+
+@empleados_bp.route("/prestamos", methods=["POST"])
+def registrar_prestamo_emp():
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return jsonify({
+            "success": False,
+            "titulo_mensaje": "No autorizado",
+            "cuerpo_mensaje": "Token de autorización inválido"
+        }), 401
+
+    body = request.get_json()
+    if not body:
+        return jsonify({"success": False, "titulo_mensaje": "No data received", "cuerpo_mensaje": "No se enviaron datos para guardar el prestamo"}), 400
+
+    descripcion = body.get("descripcion")
+    valor = body.get("valor")
+    empleado = body.get("empleado")
+    result_registrar_prestamo_emp = bd.registrar_prestamo_emp(descripcion, valor, empleado)
+    
+    valor_formateado = formatear_numero(valor)
+    if result_registrar_prestamo_emp:
+        return jsonify({
+        "success": True,
+        "titulo_mensaje": f"PRÉSTAMO A {empleado} GUARDADO CON ÉXITO",
+        "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n\n* VALOR: ${valor_formateado}"
+    }), 201
+    else:
+        return jsonify({
+            "success": False,
+            "titulo_mensaje": f"ERROR AL GUARDAR EL PRESTAMO EN LA BD",
+            "cuerpo_mensaje": f"NO SE PUDO guardar el prestamo de {empleado} por ${valor_formateado}, inténtalo más tarde"
+        }), 500
 
 
 # =================Función para verificar el token de autorización =============================

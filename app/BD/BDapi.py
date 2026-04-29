@@ -26,6 +26,7 @@ class BaseDeDatos():
         self.crear_vista_total_ventas()
 
         self.crear_tabla_transacciones()
+        self.crear_tabla_prestamos_emp()
 
     def crear_tablas(self, nombre_tabla=["compras", "gastos", "prestamos"]):
         conexion = None
@@ -629,6 +630,31 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
+    def crear_tabla_prestamos_emp(self):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prestamos_emp (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion VARCHAR NOT NULL,
+                    valor INTEGER NOT NULL,
+                    fecha VARCHAR NOT NULL,
+                    hora VARCHAR NOT NULL,
+                    empleado VARCHAR NOT NULL
+                )
+            """)
+            conexion.commit()
+        except Exception as e:
+            pass
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
     def recibir_transaccion(self, descripcion, valor, tipo):
         ahora = datetime.now(self.zonaHorariaColombia)
         fecha = ahora.strftime("%Y-%m-%d")
@@ -638,6 +664,26 @@ class BaseDeDatos():
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
             cursor.execute("INSERT INTO transacciones (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, tipo))
+            conexion.commit()
+            return True
+        except Exception as e:
+            return False
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def registrar_prestamo_emp(self, descripcion, valor, empleado):
+        ahora = datetime.now(self.zonaHorariaColombia)
+        fecha = ahora.strftime("%Y-%m-%d")
+        hora = ahora.strftime("%H:%M:%S")
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("INSERT INTO prestamos_emp (descripcion, valor, fecha, hora, empleado) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, empleado))
             conexion.commit()
             return True
         except Exception as e:
