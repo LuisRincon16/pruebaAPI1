@@ -706,8 +706,10 @@ class BaseDeDatos():
                                 WHERE fecha = ? 
                                 ORDER BY fecha DESC, hora DESC""", (dia_a_consultar))
             datos = cursor.fetchall()
+            print(f"\ndatos antes de enviar al endpoint {datos} del dia: {dia_a_consultar}")
             return [dict(row) for row in datos]
         except Exception as e:
+            print(f"día: {dia_a_consultar}, error: {e}")
             return None
         finally:
             if conexion:

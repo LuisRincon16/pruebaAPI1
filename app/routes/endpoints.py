@@ -514,6 +514,7 @@ def obtener_historial_diario_emp():
 
     datos = bd.obtener_historial_diario_emp(request.args.get("dia_a_consultar"))
 
+    print(datos)
     if datos is None:
         return jsonify({
             "success": False,
