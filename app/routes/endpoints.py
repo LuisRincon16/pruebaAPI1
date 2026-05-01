@@ -453,18 +453,19 @@ def recibir_transaccion():
     tipo = body.get("tipo")
     result_recibir_transaccion = bd.recibir_transaccion(descripcion, valor, tipo)
     
+    tipoRegistro = "INGRESO" if valor > 0 else "EGRESO"
     monto_formateado = formatear_numero(valor)
     if result_recibir_transaccion:
         return jsonify({
         "success": True,
-        "titulo_mensaje": f"{descripcion} GUARDADO CON ÉXITO",
-        "cuerpo_mensaje": f"Se guardó el {descripcion} de ${monto_formateado} proveniente de {tipo} en la BD"
+        "titulo_mensaje": f"{tipoRegistro} GUARDADO CON ÉXITO",
+        "cuerpo_mensaje": f"Se guardó '{descripcion}' de ${monto_formateado} proveniente de {tipo} en la BD"
     }), 201
     else:
         return jsonify({
             "success": False,
-            "titulo_mensaje": f"ERROR AL GUARDAR EL {descripcion}",
-            "cuerpo_mensaje": f"NO se pudo guardar el {descripcion} de ${monto_formateado} proveniente de {tipo} en la BD"
+            "titulo_mensaje": f"ERROR AL GUARDAR EL {tipoRegistro}",
+            "cuerpo_mensaje": f"NO SE PUDO guardar '{descripcion}' de ${monto_formateado} proveniente de {tipo} en la BD"
         }), 500
 
 
