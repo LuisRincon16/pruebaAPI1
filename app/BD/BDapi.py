@@ -642,7 +642,7 @@ class BaseDeDatos():
                     valor INTEGER NOT NULL,
                     fecha VARCHAR NOT NULL,
                     hora VARCHAR NOT NULL,
-                    empleado VARCHAR NOT NULL
+                    tipo VARCHAR NOT NULL
                 )
             """)
             conexion.commit()
@@ -683,7 +683,7 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            cursor.execute("INSERT INTO prestamos_emp (descripcion, valor, fecha, hora, empleado) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, empleado))
+            cursor.execute("INSERT INTO prestamos_emp (descripcion, valor, fecha, hora, tipo) VALUES (?, ?, ?, ?, ?)", (descripcion, valor, fecha, hora, empleado))
             conexion.commit()
             return True
         except Exception as e:
