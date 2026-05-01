@@ -160,8 +160,17 @@ def obtener_acumulado():
         }), 401
     
     fecha_final_rec = request.args.get("fecha_final")
-    fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
-    fecha_final_formateada = fecha_final_rec[:7] + "-32" 
+    num_quincena = request.args.get("num_quincena")
+    if num_quincena is None:
+        fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
+        fecha_final_formateada = fecha_final_rec[:7] + "-32"
+    else:
+        if num_quincena == "1°":
+            fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
+            fecha_final_formateada = fecha_final_rec[:7] + "-16"
+        else:
+            fecha_inicio_formateada = fecha_final_rec[:7] + "-16"
+            fecha_final_formateada = fecha_final_rec[:7] + "-32"
     
     result_acumulado = bd.obtener_acumulado(fecha_inicio_formateada, fecha_final_formateada, request.args.get("nombre_tabla"))
 

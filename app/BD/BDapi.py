@@ -12,6 +12,8 @@ class BaseDeDatos():
         #self.nombre_bd = os.path.join(base_dir, "db", nombre_bd)
         self.url = os.getenv("SQLITECLOUD_URL")
         self.zonaHorariaColombia = pytz.timezone("America/Bogota")
+        self.cuentasBancarias = ["NEQUI", "DAVIPLATA"]
+        self.empleados = ["ANDRES", "SERGIO", "GUILLE"]
         self.crear_tablas()
         self.crear_vista_historial()
         self.crear_indice_fecha_hora()
@@ -289,9 +291,14 @@ class BaseDeDatos():
             conexion = sqlitecloud.connect(self.url)
             conexion.row_factory = sqlitecloud.Row
             cursor = conexion.cursor()
-            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+            if nombre_tabla in self.cuentasBancarias:
                 cursor.execute(f"""SELECT *
                                 FROM transacciones
+                                WHERE fecha BETWEEN ? AND ? AND tipo = ?
+                                ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin, nombre_tabla))
+            elif nombre_tabla in self.empleados:
+                cursor.execute(f"""SELECT *
+                                FROM prestamos_emp
                                 WHERE fecha BETWEEN ? AND ? AND tipo = ?
                                 ORDER BY fecha DESC, hora DESC""", (fecha_inicio, fecha_fin, nombre_tabla))
             else:
@@ -316,9 +323,13 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+            if nombre_tabla in self.cuentasBancarias:
                 cursor.execute(f"""SELECT SUM(valor) AS total
                                 FROM transacciones
+                                WHERE fecha BETWEEN ? AND ? AND tipo = ? """, (fecha_inicio, fecha_fin, nombre_tabla))
+            elif nombre_tabla in self.empleados:
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM prestamos_emp
                                 WHERE fecha BETWEEN ? AND ? AND tipo = ? """, (fecha_inicio, fecha_fin, nombre_tabla))
             else:
                 cursor.execute(f"""SELECT SUM(valor) AS total
@@ -342,9 +353,13 @@ class BaseDeDatos():
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            if nombre_tabla == "NEQUI" or nombre_tabla == "DAVIPLATA":
+            if nombre_tabla in self.cuentasBancarias:
                 cursor.execute(f"""SELECT SUM(valor) AS total
                                 FROM transacciones
+                                WHERE fecha >= ? AND fecha < ? AND tipo = ? """, (fecha_inicio_formateada, fecha_final_formateada, nombre_tabla))
+            elif nombre_tabla in self.empleados:
+                cursor.execute(f"""SELECT SUM(valor) AS total
+                                FROM prestamos_emp
                                 WHERE fecha >= ? AND fecha < ? AND tipo = ? """, (fecha_inicio_formateada, fecha_final_formateada, nombre_tabla))
             else:
                 cursor.execute(f"""SELECT SUM(valor) AS total
