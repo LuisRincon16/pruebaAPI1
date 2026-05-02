@@ -536,9 +536,8 @@ def obtener_historial_diario_emp():
         "data": datos
     }), 200
 
-
 @cambios_bp.route("/delete/<int:id>/<string:tipo>", methods=["DELETE"])
-def eliminar_cambio(id, tipo):
+def eliminar_registro(id, tipo):
     token = request.headers.get("Authorization")
     autorizado = verificar(token)
     if not autorizado:
@@ -547,6 +546,24 @@ def eliminar_cambio(id, tipo):
     result_eliminar = bd.eliminar_registro(id, tipo)
 
     if result_eliminar:
+        return '', 204
+    else:
+        return '', 500
+    
+@cambios_bp.route("/update/<int:id>/<string:tipo>", methods=["PATCH"])
+def actualizar_registro(id, tipo):
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return '', 401
+    body = request.get_json()
+    if not body:
+        return '', 400
+    
+    descripcion = body.get("descripcion")
+    valor = body.get("valor")
+    result_actualizar = bd.actualizar_registro(id, tipo, descripcion, valor)
+    if result_actualizar:
         return '', 204
     else:
         return '', 500

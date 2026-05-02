@@ -751,4 +751,27 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
+    def actualizar_registro(self, id, tipo, descripcion, valor):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            if tipo in self.empleados:
+                cursor.execute("""UPDATE prestamos_emp
+                                SET descripcion = ?, valor = ?
+                                WHERE id = ?""", (descripcion, valor, id))
+            else:
+                cursor.execute(f"""UPDATE {tipo}
+                               SET descripcion = ?, valor = ?
+                               WHERE id = ?""", (descripcion, valor, id))
+            conexion.commit()
+            return True
+        except Exception as e:
+            return False
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
 
