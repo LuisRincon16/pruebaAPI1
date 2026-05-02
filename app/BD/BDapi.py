@@ -731,4 +731,24 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
+    def eliminar_registro(self, id, tipo):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            if tipo in self.empleados:
+                cursor.execute("DELETE FROM prestamos_emp WHERE id = ?", (id,))
+            else:
+                cursor.execute(f"DELETE FROM {tipo} WHERE id = ?", (id,))
+            conexion.commit()
+            return True
+        except Exception as e:
+            return False
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
 

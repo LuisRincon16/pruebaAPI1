@@ -13,6 +13,7 @@ registradora_bp = Blueprint("registradora", __name__)
 resumen_bp = Blueprint("resumen", __name__)
 transacciones_bp = Blueprint("transacciones", __name__)
 empleados_bp = Blueprint("empleados", __name__)
+cambios_bp = Blueprint("cambios", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
@@ -534,6 +535,21 @@ def obtener_historial_diario_emp():
         "success": True,
         "data": datos
     }), 200
+
+
+@cambios_bp.route("/delete/<int:id>/<string:tipo>", methods=["DELETE"])
+def eliminar_cambio(id, tipo):
+    token = request.headers.get("Authorization")
+    autorizado = verificar(token)
+    if not autorizado:
+        return '', 401
+
+    result_eliminar = bd.eliminar_registro(id, tipo)
+
+    if result_eliminar:
+        return '', 204
+    else:
+        return '', 500
 
 
 # =================Función para verificar el token de autorización =============================
