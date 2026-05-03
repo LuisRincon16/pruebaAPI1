@@ -1,41 +1,26 @@
 from datetime import datetime
 import sqlitecloud
-from dotenv import load_dotenv
 import os
 import pytz
 
-load_dotenv()
-
 class BaseDeDatos():
     def __init__(self):
-        #base_dir = os.path.dirname(os.path.abspath(__file__))
-        #self.nombre_bd = os.path.join(base_dir, "db", nombre_bd)
         self.url = os.getenv("SQLITECLOUD_URL")
         self.zonaHorariaColombia = pytz.timezone("America/Bogota")
         self.cuentasBancarias = ["NEQUI", "DAVIPLATA"]
         self.empleados = ["ANDRES", "SERGIO", "GUILLE"]
         self.crear_tablas()
-        self.crear_vista_historial()
-        self.crear_indice_fecha_hora()
-        #------- para la registradora ---------
-        self.crear_tabla_Ventas()
-        self.crear_indices_ventas()
+        self.crear_indices()
         #------- vistas para optimizar consultas del resumen general ---------
-        self.crear_vista_total_compras()
-        self.crear_vista_total_gastos()
-        self.crear_vista_total_prestamos()
+        self.crear_vista_historial()
         self.crear_vista_total_gastado()
-        self.crear_vista_total_ventas()
 
-        self.crear_tabla_transacciones()
-        self.crear_tabla_prestamos_emp()
-
-    def crear_tablas(self, nombre_tabla=["compras", "gastos", "prestamos"]):
+    def crear_tablas(self):
         conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
-            for table in nombre_tabla:
+            for table in ["compras", "gastos", "prestamos"]:
                 cursor.execute(f"""
                     CREATE TABLE IF NOT EXISTS {table} (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,6 +29,105 @@ class BaseDeDatos():
                         fecha VARCHAR NOT NULL,
                         hora VARCHAR NOT NULL,
                         tipo VARCHAR NOT NULL )""")
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS ventas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fecha VARCHAR NOT NULL,
+                    hora VARCHAR NOT NULL,
+                    monto INTEGER NOT NULL,
+                    estado VARCHAR NOT NULL
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS transacciones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion VARCHAR NOT NULL,
+                    valor INTEGER NOT NULL,
+                    fecha VARCHAR NOT NULL,
+                    hora VARCHAR NOT NULL, 
+                    tipo VARCHAR NOT NULL
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prestamos_emp (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion VARCHAR NOT NULL,
+                    valor INTEGER NOT NULL,
+                    fecha VARCHAR NOT NULL,
+                    hora VARCHAR NOT NULL,
+                    tipo VARCHAR NOT NULL
+                )
+            """)
+            conexion.commit()
+        except Exception as e:
+            pass
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+    
+    def crear_indices(self):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            for table in ["compras", "gastos", "prestamos", "ventas"]:     #indices para compras, gastos, prestamos y ventas
+                cursor.execute(f"""CREATE INDEX IF NOT EXISTS idx_fecha_hora_{table}
+                                    ON {table}(fecha, hora)""")
+            for table2 in ["transacciones", "prestamos_emp"]:              #indices para transacciones y prestamos_emp
+                cursor.execute(f"""CREATE INDEX IF NOT EXISTS idx_tipo_fecha_{table2}
+                                    ON {table2}(tipo, fecha)""")
+            conexion.commit()
+        except Exception as e:
+            pass
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+    
+    def crear_vista_historial(self):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""
+                CREATE VIEW IF NOT EXISTS historial_completo AS
+                SELECT * FROM compras
+                UNION ALL
+                SELECT * FROM gastos
+                UNION ALL
+                SELECT * FROM prestamos
+            """)
+            conexion.commit()
+        except Exception as e:
+            pass
+        finally:
+            if conexion:
+                try:
+                    conexion.close()
+                except Exception as e:
+                    pass
+
+    def crear_vista_total_gastado(self):
+        conexion = None
+        try:
+            conexion = sqlitecloud.connect(self.url)
+            cursor = conexion.cursor()
+            cursor.execute("""
+                CREATE VIEW IF NOT EXISTS total_gastado AS
+                SELECT fecha, SUM(valor) AS total
+                FROM(
+                    SELECT fecha, valor FROM compras
+                    UNION ALL
+                    SELECT fecha, valor FROM gastos
+                    UNION ALL
+                    SELECT fecha, valor FROM prestamos)
+                GROUP BY fecha
+            """)
             conexion.commit()
         except Exception as e:
             pass
@@ -82,161 +166,7 @@ class BaseDeDatos():
                     conexion.close()
                 except Exception as e:
                     pass
-        
-
-    # --------- Vistas e índices para optimizar consultas del historial ---------
-
-    def crear_vista_historial(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE VIEW IF NOT EXISTS historial_completo AS
-                SELECT * FROM compras
-                UNION ALL
-                SELECT * FROM gastos
-                UNION ALL
-                SELECT * FROM prestamos
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
     
-    def crear_vista_total_compras(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE VIEW IF NOT EXISTS total_compras AS
-                SELECT fecha, SUM(valor) AS total
-                FROM compras
-                GROUP BY fecha
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_vista_total_gastos(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE VIEW IF NOT EXISTS total_gastos AS
-                SELECT fecha, SUM(valor) AS total
-                FROM gastos
-                GROUP BY fecha
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_vista_total_prestamos(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE VIEW IF NOT EXISTS total_prestamos AS
-                SELECT fecha, SUM(valor) AS total
-                FROM prestamos
-                GROUP BY fecha
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_vista_total_ventas(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                    CREATE VIEW IF NOT EXISTS total_ventas AS
-                    SELECT fecha, SUM(monto) AS total
-                    FROM ventas
-                    GROUP BY fecha
-                """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_vista_total_gastado(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE VIEW IF NOT EXISTS total_gastado AS
-                SELECT fecha, SUM(valor) AS total
-                FROM(
-                    SELECT fecha, valor FROM compras
-                    UNION ALL
-                    SELECT fecha, valor FROM gastos
-                    UNION ALL
-                    SELECT fecha, valor FROM prestamos)
-                GROUP BY fecha
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_indice_fecha_hora(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            for table in ["compras", "gastos", "prestamos"]:
-                cursor.execute(f"""CREATE INDEX IF NOT EXISTS
-                                    idx_{table}_fecha_hora ON {table}(fecha, hora)""")
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
     # --------- método para obtener datos del historial ---------
 
     def obtener_historial(self, fecha_inicio, fecha_fin, descripcion):
@@ -420,7 +350,7 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
-    def obtener_total_gastado(self, fecha_inicio, fecha_fin):     #Devuelve el total de EFECTIVO
+    def obtener_total_gastado(self, fecha_inicio, fecha_fin):  #Devuelve el total gastado (para restarlo al vendido y obtener el efectivo)
         conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
@@ -441,7 +371,7 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
 
-    def obtener_acumulado_total_gastado(self, fecha_inicio_formateada, fecha_final_formateada):     #Devuelve el acumulado de EFECTIVO en el mes proporcionado
+    def obtener_acumulado_total_gastado(self, fecha_inicio_formateada, fecha_final_formateada): #Devuelve el acumulado de lo gastado en el mes proporcionado (para restarlo al acumulado de ventas y obtener el efectivo acumulado)
         conexion = None
         try:
             conexion = sqlitecloud.connect(self.url)
@@ -463,50 +393,6 @@ class BaseDeDatos():
                     pass
 
     # --------- Métodos para la registradora ---------
-    
-    def crear_tabla_Ventas(self, nombre_tabla="ventas"):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {nombre_tabla} (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    fecha VARCHAR NOT NULL,
-                    hora VARCHAR NOT NULL,
-                    monto INTEGER NOT NULL,
-                    estado VARCHAR NOT NULL
-                )
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-    
-    def crear_indices_ventas(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_fecha_hora_ventas
-                ON ventas(fecha, hora)
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
     def agregar_venta(self, fecha, hora, monto, estado):
         conexion = None
         try:
@@ -619,56 +505,6 @@ class BaseDeDatos():
                     conexion.close()
                 except Exception as e:
                     pass
-    
-    def crear_tabla_transacciones(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS transacciones (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    descripcion VARCHAR NOT NULL,
-                    valor INTEGER NOT NULL,
-                    fecha VARCHAR NOT NULL,
-                    hora VARCHAR NOT NULL, 
-                    tipo VARCHAR NOT NULL
-                )
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
-
-    def crear_tabla_prestamos_emp(self):
-        conexion = None
-        try:
-            conexion = sqlitecloud.connect(self.url)
-            cursor = conexion.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS prestamos_emp (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    descripcion VARCHAR NOT NULL,
-                    valor INTEGER NOT NULL,
-                    fecha VARCHAR NOT NULL,
-                    hora VARCHAR NOT NULL,
-                    tipo VARCHAR NOT NULL
-                )
-            """)
-            conexion.commit()
-        except Exception as e:
-            pass
-        finally:
-            if conexion:
-                try:
-                    conexion.close()
-                except Exception as e:
-                    pass
 
     def recibir_transaccion(self, descripcion, valor, tipo):
         ahora = datetime.now(self.zonaHorariaColombia)
@@ -774,4 +610,3 @@ class BaseDeDatos():
                     conexion.close()
                 except Exception as e:
                     pass
-

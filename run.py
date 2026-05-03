@@ -7,14 +7,8 @@ app = Flask(__name__)
 CORS(app)  # Permite peticiones desde Android
 db = BaseDeDatos()
 
-# Registrar los "blueprints" (grupos de rutas)
-from app.routes.endpoints import registrar_bp
-from app.routes.endpoints import historial_bp
-from app.routes.endpoints import registradora_bp
-from app.routes.endpoints import resumen_bp
-from app.routes.endpoints import transacciones_bp
-from app.routes.endpoints import empleados_bp
-from app.routes.endpoints import cambios_bp
+from app.routes.endpoints import (registrar_bp, historial_bp, registradora_bp, resumen_bp,
+                                    transacciones_bp, empleados_bp, cambios_bp)
 app.register_blueprint(registrar_bp, url_prefix="/api/registrar")
 app.register_blueprint(historial_bp, url_prefix="/api/historial")
 app.register_blueprint(registradora_bp, url_prefix="/api/registradora")

@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from flask import Blueprint, jsonify, request
 from app.BD.BDapi import BaseDeDatos
@@ -28,7 +25,6 @@ def agregar_dato():
             "cuerpo_mensaje": "SUERTE .!."
         }), 401
     
-    #si está autorizado, recibe el JSON con los datos para agregar
     body = request.get_json()
     if not body:
         return jsonify({"success": False,
@@ -55,7 +51,6 @@ def agregar_dato():
             "cuerpo_mensaje": "No se pudo agregar el registro a la BD por algun fallo de conexion."
         }), 500
 
-
 #recibir historial de datos de las tres tablas
 @historial_bp.route("/", methods=["GET"])
 def obtener_historial():
@@ -80,7 +75,6 @@ def obtener_historial():
         "success": True,
         "data": datos
     }), 200
-
 
 @historial_bp.route("/opciones", methods=["GET"])
 def consultar_opciones():
@@ -115,7 +109,6 @@ def obtener_resumen_general():
         }), 401
 
     result_resumen = bd.obtener_resumen_general(request.args.get("fecha_inicio"), request.args.get("fecha_final"), request.args.get("nombre_tabla"))
-    #print(f"resumen en el endpoint {result_resumen}\n")
     if result_resumen is None:
         return jsonify({
             "success": False,
@@ -143,7 +136,6 @@ def obtener_totales_por_fecha():
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_total
@@ -173,13 +165,11 @@ def obtener_acumulado():
             fecha_final_formateada = fecha_final_rec[:7] + "-32"
     
     result_acumulado = bd.obtener_acumulado(fecha_inicio_formateada, fecha_final_formateada, request.args.get("nombre_tabla"))
-
     if result_acumulado is None:
         return jsonify({
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_acumulado
@@ -196,13 +186,11 @@ def obtener_total_ventas():
         }), 401
 
     result_total_ventas = bd.obtener_total_ventas(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
-
     if result_total_ventas is None:
         return jsonify({
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_total_ventas
@@ -217,19 +205,16 @@ def obtener_acumulado_ventas():
             "success": False,
             "data": 0
         }), 401
-
     fecha_final_rec = request.args.get("fecha_final")
     fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
     fecha_final_formateada = fecha_final_rec[:7] + "-32"
 
     result_acumulado_ventas = bd.obtener_acumulado_ventas(fecha_inicio_formateada, fecha_final_formateada)
-
     if result_acumulado_ventas is None:
         return jsonify({
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_acumulado_ventas
@@ -246,13 +231,11 @@ def obtener_total_gastado():
         }), 401
 
     result_total_gastado = bd.obtener_total_gastado(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
-
     if result_total_gastado is None:
         return jsonify({
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_total_gastado
@@ -267,19 +250,16 @@ def obtener_acumulado_total_gastado():
             "success": False,
             "data": 0
         }), 401
-
     fecha_final_rec = request.args.get("fecha_final")
     fecha_inicio_formateada = fecha_final_rec[:7] + "-01"
     fecha_final_formateada = fecha_final_rec[:7] + "-32"
 
     result_acumulado_total_gastado = bd.obtener_acumulado_total_gastado(fecha_inicio_formateada, fecha_final_formateada)
-
     if result_acumulado_total_gastado is None:
         return jsonify({
             "success": False,
             "data": 0
         }), 500
-
     return jsonify({
         "success": True,
         "data": result_acumulado_total_gastado
@@ -287,7 +267,6 @@ def obtener_acumulado_total_gastado():
 
 
 #----------------- ENDPOINTS PARA LAS VENTAS ----------------------
-
 @registradora_bp.route("/ventas", methods=["POST"])
 def agregar_venta():
     token = request.headers.get("Authorization")
@@ -298,13 +277,11 @@ def agregar_venta():
             "error": "No autorizado",
             "mensaje": "Token de autorización inválido"
         }), 401
-
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
 
     result_agregar_venta = bd.agregar_venta(body.get("fecha"), body.get("hora"), body.get("monto"), body.get("estado"))
-
     if result_agregar_venta:
         return jsonify({
         "success": True,
@@ -329,13 +306,11 @@ def consultar_ventas():
         }), 401
 
     datos = bd.consultar_ventas(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
-
     if datos is None:
         return jsonify({
             "success": False,
             "data": []
         }), 500
-    
     return jsonify({
         "success": True,
         "data": datos
@@ -353,13 +328,11 @@ def consultar_venta_por_id(id_venta):
         }), 401
 
     dato = bd.consultar_venta_por_id(id_venta)
-
     if dato is None:
         return jsonify({
             "success": False,
             "data": None
         }), 500
-    
     return jsonify({
         "success": True,
         "data": dato      #puede ser un DATO si encuentra la venta o FALSE si no hay ventas por ese ID
@@ -375,15 +348,13 @@ def total_ventas():
             "error": "No autorizado",
             "mensaje": "Token de autorización inválido"
         }), 401
-
+    
     total = bd.total_vendido(request.args.get("fecha_inicio"), request.args.get("fecha_final"))
-
     if total is None:
         return jsonify({
             "success": False,
             "data": None
         }), 500
-    
     return jsonify({
         "success": True,
         "data": total        #puede ser un DATO si encuentra un TOTAL o FALSE si no hay ningun TOTAL para ese rango de fechas
@@ -401,7 +372,6 @@ def eliminar_venta_por_id(id_venta):
         }), 401
 
     result_eliminar = bd.eliminar_venta_por_id(id_venta)
-
     if result_eliminar:
         return jsonify({
             "success": True,
@@ -423,13 +393,11 @@ def agregar_ventas_pendientes():
             "error": "No autorizado",
             "mensaje": "Token de autorización inválido"
         }), 401
-    
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "mensaje": "No se enviaron datos"}), 400
 
     result_agregar_pendientes = bd.agregar_ventas_pendientes(body)
-
     if result_agregar_pendientes:
         return jsonify({
         "success": True,
@@ -452,7 +420,6 @@ def recibir_transaccion():
             "titulo_mensaje": "No autorizado",
             "cuerpo_mensaje": "Token de autorización inválido"
         }), 401
-
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "titulo_mensaje": "No data received", "cuerpo_mensaje": "No se enviaron datos para guardar la transaccion"}), 400
@@ -477,7 +444,6 @@ def recibir_transaccion():
             "cuerpo_mensaje": f"NO SE PUDO guardar '{descripcion}' de ${monto_formateado} proveniente de {tipo} en la BD"
         }), 500
 
-
 @empleados_bp.route("/prestamos", methods=["POST"])
 def registrar_prestamo_emp():
     token = request.headers.get("Authorization")
@@ -488,7 +454,6 @@ def registrar_prestamo_emp():
             "titulo_mensaje": "No autorizado",
             "cuerpo_mensaje": "Token de autorización inválido"
         }), 401
-
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "titulo_mensaje": "No data received", "cuerpo_mensaje": "No se enviaron datos para guardar el prestamo"}), 400
@@ -523,13 +488,11 @@ def obtener_historial_diario_emp():
         }), 401
 
     datos = bd.obtener_historial_diario_emp(request.args.get("dia_a_consultar"))
-
     if datos is None:
         return jsonify({
             "success": False,
             "data": []
         }), 500
-    
     return jsonify({
         "success": True,
         "data": datos
@@ -543,7 +506,6 @@ def eliminar_registro(id, tipo):
         return '', 401
 
     result_eliminar = bd.eliminar_registro(id, tipo)
-
     if result_eliminar:
         return '', 204
     else:
