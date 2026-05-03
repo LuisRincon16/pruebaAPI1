@@ -18,7 +18,6 @@ cambios_bp = Blueprint("cambios", __name__)
 # Instanciamos la base de datos
 bd = BaseDeDatos()
 
-# POST /api/registrar/
 @registrar_bp.route("/", methods=["POST"])
 def agregar_dato():
     autorizado = verificar(request.headers.get("Authorization"))
@@ -46,7 +45,7 @@ def agregar_dato():
         valor_formateado = formatear_numero(valor)
         return jsonify({
         "success": True,
-        "titulo_mensaje": f"REGISTRADO EN {nombre_tabla}",
+        "titulo_mensaje": f"REGISTRADO EN {nombre_tabla}✅",
         "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n\n* VALOR: {valor_formateado}"
     }), 201
     else:
@@ -503,7 +502,7 @@ def registrar_prestamo_emp():
     if result_registrar_prestamo_emp:
         return jsonify({
         "success": True,
-        "titulo_mensaje": f"PRÉSTAMO A {empleado} GUARDADO",
+        "titulo_mensaje": f"PRÉSTAMO A {empleado} GUARDADO✅",
         "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n\n* VALOR: ${valor_formateado}"
     }), 201
     else:
