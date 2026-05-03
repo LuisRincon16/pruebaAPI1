@@ -467,7 +467,7 @@ def recibir_transaccion():
     if result_recibir_transaccion:
         return jsonify({
         "success": True,
-        "titulo_mensaje": f"{tipoRegistro} GUARDADO CON ÉXITO",
+        "titulo_mensaje": f"{tipoRegistro} GUARDADO✅",
         "cuerpo_mensaje": f"Se guardó '{descripcion}' de ${monto_formateado} proveniente de {tipo} en la BD"
     }), 201
     else:
