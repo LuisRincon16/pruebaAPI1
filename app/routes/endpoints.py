@@ -502,7 +502,7 @@ def registrar_prestamo_emp():
     if result_registrar_prestamo_emp:
         return jsonify({
         "success": True,
-        "titulo_mensaje": f"PRÉSTAMO A {empleado} GUARDADO✅",
+        "titulo_mensaje": f"PRES. A {empleado} GUARDADO✅",
         "cuerpo_mensaje": f"* DESCRIPCION: {descripcion}\n\n* VALOR: ${valor_formateado}"
     }), 201
     else:
