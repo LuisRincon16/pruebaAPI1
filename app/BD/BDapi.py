@@ -7,8 +7,8 @@ class BaseDeDatos():
     def __init__(self):
         self.url = os.getenv("SQLITECLOUD_URL")
         self.zonaHorariaColombia = pytz.timezone("America/Bogota")
-        self.cuentasBancarias = ["NEQUI", "DAVIPLATA"]
-        self.empleados = ["ANDRES", "SERGIO", "GUILLE"]
+        self.cuentasBancarias = {"NEQUI", "DAVIPLATA"}
+        self.empleados = {"ANDRES", "SERGIO", "GUILLE"}
         self.crear_tablas()
         self.crear_indices()
         #------- vistas para optimizar consultas del resumen general ---------
