@@ -458,10 +458,9 @@ class BaseDeDatos():
                                 FROM ventas
                                 WHERE fecha BETWEEN ? AND ?""", (fecha_inicio, fecha_fin))
             resultado = cursor.fetchone()
-            print(f"PROBANDO TOTAL: {resultado}\n")
-            if resultado is None:
-                return False
-            return resultado
+            if resultado[0] is None:
+                return 0
+            return resultado[0]
         except Exception as e:
             return None
         finally:

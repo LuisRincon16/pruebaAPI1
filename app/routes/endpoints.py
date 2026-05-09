@@ -357,7 +357,7 @@ def total_ventas():
         }), 500
     return jsonify({
         "success": True,
-        "data": total        #puede ser un DATO si encuentra un TOTAL o FALSE si no hay ningun TOTAL para ese rango de fechas
+        "data": total        #puede ser un DATO si encuentra un TOTAL o 0 si no hay ningun TOTAL para ese rango de fechas
     }), 200
 
 @registradora_bp.route("/ventas/<int:id_venta>", methods=["DELETE"])
