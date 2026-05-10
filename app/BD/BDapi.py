@@ -498,7 +498,6 @@ class BaseDeDatos():
                 lote = datos[i:i+1000]
                 cursor.executemany("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", lote)
                 conexion.commit()
-            print("No llegué al except y todo bien\n")
             return True
         except Exception as e:
             if conexion:
@@ -506,7 +505,6 @@ class BaseDeDatos():
                     conexion.rollback()
                 except Exception as e:
                     pass
-            print(f"Estoy en el except, error: {e}\n")
             return False
         finally:
             if conexion:
