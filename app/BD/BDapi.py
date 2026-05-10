@@ -496,6 +496,7 @@ class BaseDeDatos():
             datos = [(f, h, m, "ACTUALIZADO") for f, h, m in ventas_pendientes]
             cursor.executemany("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", datos)
             conexion.commit()
+            print("No llegué al except y todo bien\n")
             return True
         except Exception as e:
             if conexion:
@@ -503,6 +504,7 @@ class BaseDeDatos():
                     conexion.rollback()
                 except Exception as e:
                     pass
+            print(f"Estoy en el except, error: {e}\n")
             return False
         finally:
             if conexion:
