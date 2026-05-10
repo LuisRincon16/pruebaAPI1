@@ -494,8 +494,10 @@ class BaseDeDatos():
             conexion = sqlitecloud.connect(self.url)
             cursor = conexion.cursor()
             datos = [(f, h, m, "ACTUALIZADO") for f, h, m in ventas_pendientes]
-            cursor.executemany("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", datos)
-            conexion.commit()
+            for i in range(0, len(datos), 1000):
+                lote = datos[i:i+1000]
+                cursor.executemany("INSERT INTO ventas (fecha, hora, monto, estado) VALUES (?, ?, ?, ?)", lote)
+                conexion.commit()
             print("No llegué al except y todo bien\n")
             return True
         except Exception as e:
