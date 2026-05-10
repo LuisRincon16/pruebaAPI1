@@ -487,7 +487,6 @@ class BaseDeDatos():
                 except Exception as e:
                     pass
     
-    #para el redeploy
     def agregar_ventas_pendientes(self, ventas_pendientes):
         conexion = None
         try:
