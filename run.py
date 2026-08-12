@@ -8,7 +8,7 @@ CORS(app)  # Permite peticiones desde Android
 db = BaseDeDatos()
 
 from app.routes.endpoints import (registrar_bp, historial_bp, registradora_bp, resumen_bp,
-                                    transacciones_bp, empleados_bp, cambios_bp)
+                                    transacciones_bp, empleados_bp, cambios_bp, prueba_bp)
 app.register_blueprint(registrar_bp, url_prefix="/api/registrar")
 app.register_blueprint(historial_bp, url_prefix="/api/historial")
 app.register_blueprint(registradora_bp, url_prefix="/api/registradora")
@@ -16,6 +16,7 @@ app.register_blueprint(resumen_bp, url_prefix="/api/resumenGeneral")
 app.register_blueprint(transacciones_bp, url_prefix="/api/transacciones")
 app.register_blueprint(empleados_bp, url_prefix="/api/empleados")
 app.register_blueprint(cambios_bp, url_prefix="/api/cambios")
+app.register_blueprint(prueba_bp)
 
 if __name__ == "__main__":
     #port = int(os.environ.get("PORT", 5000))

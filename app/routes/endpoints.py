@@ -11,9 +11,14 @@ resumen_bp = Blueprint("resumen", __name__)
 transacciones_bp = Blueprint("transacciones", __name__)
 empleados_bp = Blueprint("empleados", __name__)
 cambios_bp = Blueprint("cambios", __name__)
+prueba_bp = Blueprint("prueba", __name__)
 
 # Instanciamos la base de datos
 bd = BaseDeDatos()
+
+@prueba_bp.route("/", methods=["GET"])
+def prueba():
+    return '', 200
 
 @registrar_bp.route("/", methods=["POST"])
 def agregar_dato():
